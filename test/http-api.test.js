@@ -52,6 +52,15 @@ test('endpoint de readiness confirma DEMO pronta', async () => {
   assert.deepEqual(await response.json(), { status: 'ready', mode: 'DEMO', errors: [] });
 });
 
+test('checklist de lançamento expõe pendências sem depender do iFood', async () => {
+  const response = await fetch(`${baseUrl}/api/launch/readiness`);
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.total, 6);
+  assert.equal(body.checks.find(item => item.id === 'homologation').ready, false);
+  assert.equal(body.checks.find(item => item.id === 'ifood-gate').ready, true);
+});
+
 test('contrato OpenAPI documenta os endpoints operacionais', async () => {
   const response = await fetch(`${baseUrl}/api/openapi.json`);
   assert.equal(response.status, 200);

@@ -27,6 +27,7 @@ import { SlidingWindowLimiter } from './security/config.js';
 import { can } from './security/access.js';
 import { Persistence } from './db/persistence.js';
 import { PostgresApprovalRepository, PostgresEventRepository } from './db/operational-repositories.js';
+import { buildLaunchReadiness } from './domain/readiness.js';
 
 const root = fileURLToPath(new URL('../public', import.meta.url));
 const persistence = new Persistence();
@@ -141,6 +142,11 @@ export const server = http.createServer(async (req, res) => {
     if (req.url === '/api/demo' || req.url.startsWith('/api/demo?')) { const demoUrl = new URL(req.url, 'http://localhost'); return json(res, buildDemoSnapshot({ scenario: demoUrl.searchParams.get('scenario') ?? 'normal' })); }
     if (req.url === '/api/openapi.json') return json(res, openapi);
     if (req.url === '/api/system/status') return json(res, featureStatus(process.env, { mode: persistence.mode, productionReady: persistence.mode === 'POSTGRES' }));
+    if (req.method === 'GET' && req.url === '/api/launch/readiness') {
+      const integration = { enabled: ifoodClient.enabled, mode: ifoodClient.enabled ? 'REAL' : 'DEMO' };
+      const system = featureStatus(process.env, { mode: persistence.mode, productionReady: persistence.mode === 'POSTGRES' });
+      return json(res, buildLaunchReadiness({ integration, system, persistenceMode: persistence.mode }));
+    }
     if (req.url === '/api/stores') return json(res, visibleStores(snapshot.stores, getRequestUser(req)).map(({ orders, ...store }) => store));
     if (req.url.startsWith('/api/stores/') && req.url.endsWith('/health')) {
       const storeId = req.url.split('/')[3];
@@ -309,7 +315,7 @@ function isPublicApi(requestUrl) {
 function allowedMethodsFor(requestUrl) {
   const pathname = new URL(requestUrl, 'http://localhost').pathname;
   if (pathname === '/api/auth/register' || pathname === '/api/auth/login' || pathname === '/api/auth/logout') return ['POST'];
-  if (pathname === '/api/auth/me' || pathname === '/api/ifood/config' || pathname === '/api/ifood/health' || pathname === '/api/ifood/merchants/status' || pathname === '/api/ifood/orders' || pathname === '/api/ifood/events' || pathname === '/api/ifood/reconciliation' || pathname === '/api/demo/scenarios' || pathname === '/api/openapi.json' || pathname === '/api/system/status' || pathname === '/api/stores' || pathname === '/api/orders' || pathname === '/api/finance/summary' || pathname === '/api/metrics' || pathname === '/api/metrics/daily' || pathname === '/api/metrics/hourly' || pathname === '/api/forecasts' || pathname === '/api/catalog/analysis' || pathname === '/api/products' || pathname === '/api/reviews' || pathname === '/api/reviews/analysis' || pathname === '/api/reviews/critical' || pathname === '/api/alerts' || pathname === '/api/opportunities' || pathname === '/api/approvals' || pathname === '/api/decisions' || pathname === '/api/audit' || pathname === '/api/backup/demo.json' || pathname === '/api/reports/daily' || pathname === '/api/reports/products.csv' || pathname === '/api/reports/orders.csv' || pathname.startsWith('/api/goals')) return ['GET'];
+  if (pathname === '/api/auth/me' || pathname === '/api/ifood/config' || pathname === '/api/ifood/health' || pathname === '/api/ifood/merchants/status' || pathname === '/api/ifood/orders' || pathname === '/api/ifood/events' || pathname === '/api/ifood/reconciliation' || pathname === '/api/demo/scenarios' || pathname === '/api/openapi.json' || pathname === '/api/system/status' || pathname === '/api/launch/readiness' || pathname === '/api/stores' || pathname === '/api/orders' || pathname === '/api/finance/summary' || pathname === '/api/metrics' || pathname === '/api/metrics/daily' || pathname === '/api/metrics/hourly' || pathname === '/api/forecasts' || pathname === '/api/catalog/analysis' || pathname === '/api/products' || pathname === '/api/reviews' || pathname === '/api/reviews/analysis' || pathname === '/api/reviews/critical' || pathname === '/api/alerts' || pathname === '/api/opportunities' || pathname === '/api/approvals' || pathname === '/api/decisions' || pathname === '/api/audit' || pathname === '/api/backup/demo.json' || pathname === '/api/reports/daily' || pathname === '/api/reports/products.csv' || pathname === '/api/reports/orders.csv' || pathname.startsWith('/api/goals')) return ['GET'];
   if (pathname === '/api/demo') return ['GET'];
   if (pathname === '/api/ifood/webhook' || pathname === '/api/ifood/sync') return ['POST'];
   if (pathname.match(/^\/api\/ifood\/merchants\/[^/]+\/interruptions$/)) return ['GET', 'POST'];

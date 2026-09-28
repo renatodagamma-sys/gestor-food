@@ -23,6 +23,7 @@ document.querySelector('#scenario').addEventListener('change', event => { locati
 const data = await fetchJson(`/api/demo?scenario=${encodeURIComponent(currentScenario)}`);
 const integration = await fetchJson('/api/ifood/config');
 const system = await fetchJson('/api/system/status');
+const readiness = await fetchJson('/api/launch/readiness');
 const scenarioQuery = `?scenario=${encodeURIComponent(currentScenario)}`;
 document.querySelector('#products-report').href = `/api/reports/products.csv${scenarioQuery}`;
 document.querySelector('#daily-report').href = `/api/reports/daily${scenarioQuery}`;
@@ -34,6 +35,8 @@ const enabledModules = Object.values(system.modules).filter(Boolean).length;
 const totalModules = Object.keys(system.modules).length;
 const persistenceLabel = system.persistence?.productionReady ? 'persistência ativa' : 'persistência DEMO em memória';
 document.querySelector('#system-status').textContent = `${enabledModules}/${totalModules} módulos ativos · ${persistenceLabel} · ${system.authRequired ? 'autenticação obrigatória' : 'autenticação opcional'}`;
+document.querySelector('#readiness-summary').textContent = `${readiness.completed}/${readiness.total} itens concluídos · ${readiness.percent}%`;
+document.querySelector('#readiness').innerHTML = readiness.checks.map(item => `<div class="item"><div class="item-title">${item.ready ? '✅' : '⬜'} ${esc(item.label)}</div><p>${esc(item.detail)}</p></div>`).join('');
 const consolidated = data.consolidated;
 document.querySelector('#finance-area').innerHTML = [
   ['Todas as lojas', brl(consolidated.grossCents)],
