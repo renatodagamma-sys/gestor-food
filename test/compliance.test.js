@@ -7,6 +7,8 @@ test('matriz de conformidade não confunde contrato local com homologação', ()
   assert.equal(report.summary.total, 13);
   assert.equal(report.summary.implemented, 9);
   assert.equal(report.summary.pendingImplementation, 4);
+  assert.equal(report.summary.offlineReady, 12);
+  assert.equal(report.checks.find(item => item.id === 'shipping').status, 'SIMULADOR_PRONTO');
   assert.equal(report.checks.every(item => item.verified === false), true);
   assert.match(report.disclaimer, /não substitui homologação oficial/);
 });
