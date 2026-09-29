@@ -6,22 +6,25 @@ const REQUIREMENTS = [
   { id: 'orders.lifecycle', module: 'Orders/Events', label: 'Consultar pedido e executar ciclo operacional controlado', codeReady: true, external: true },
   { id: 'orders.payload', module: 'Orders/Events', label: 'Preservar cliente, itens, pagamentos, benefícios e entrega', codeReady: true, external: true },
   { id: 'catalog.read', module: 'Catalog', label: 'Consultar catálogos e itens vendáveis', codeReady: true, external: true },
-  { id: 'catalog.write', module: 'Catalog', label: 'Criar e atualizar categorias, produtos, complementos, preços e imagens', codeReady: false, external: true },
-  { id: 'shipping', module: 'Shipping', label: 'Criar, cotar e rastrear entregas', codeReady: false, external: true },
+  { id: 'catalog.write', module: 'Catalog', label: 'Criar e atualizar categorias, produtos, complementos, preços e imagens', codeReady: false, localReady: true, external: true },
+  { id: 'shipping', module: 'Shipping', label: 'Criar, cotar e rastrear entregas', codeReady: false, localReady: true, external: true },
   { id: 'review.read', module: 'Review', label: 'Listar avaliações e exibir resumo na interface', codeReady: true, external: true },
   { id: 'review.write', module: 'Review', label: 'Responder avaliações com aprovação', codeReady: true, external: true },
-  { id: 'review.policy', module: 'Review', label: 'Exibir link da Política de Avaliações do iFood', codeReady: false, external: true },
+  { id: 'review.policy', module: 'Review', label: 'Exibir link da Política de Avaliações do iFood', codeReady: false, localReady: true, external: true },
   { id: 'financial', module: 'Financial', label: 'Validar módulo financeiro em chamado específico', codeReady: false, external: true }
 ];
 
 export function buildComplianceReport({ integrationMode = 'DEMO' } = {}) {
   const checks = REQUIREMENTS.map(item => ({
     ...item,
-    status: item.codeReady ? 'CONTRATO_PRONTO' : 'PENDENTE_IMPLEMENTACAO',
+    localReady: item.localReady ?? item.codeReady,
+    status: item.codeReady ? 'CONTRATO_PRONTO' : item.localReady ? 'SIMULADOR_PRONTO' : 'PENDENTE_IMPLEMENTACAO',
     verified: false,
     detail: item.codeReady
       ? 'Coberto por contrato, testes locais e simulador; falta validação oficial.'
-      : 'Ainda precisa de implementação e testes antes da homologação.'
+      : item.localReady
+        ? 'Fluxo local e simulador cobertos; ainda falta validar o contrato oficial e permissões.'
+        : 'Ainda precisa de implementação e testes antes da homologação.'
   }));
   const implemented = checks.filter(item => item.codeReady).length;
   const external = checks.filter(item => item.external).length;
@@ -29,7 +32,7 @@ export function buildComplianceReport({ integrationMode = 'DEMO' } = {}) {
     generatedAt: new Date().toISOString(),
     integrationMode,
     disclaimer: 'Relatório técnico local; não substitui homologação oficial nem confirma acesso a módulos do iFood.',
-    summary: { total: checks.length, implemented, pendingImplementation: checks.length - implemented, externalValidationPending: external },
+    summary: { total: checks.length, implemented, pendingImplementation: checks.length - implemented, offlineReady: checks.filter(item => item.localReady).length, offlinePending: checks.filter(item => !item.localReady).length, externalValidationPending: external },
     modules: [...new Set(checks.map(item => item.module))].map(module => {
       const items = checks.filter(item => item.module === module);
       return { module, total: items.length, implemented: items.filter(item => item.codeReady).length, checks: items };
