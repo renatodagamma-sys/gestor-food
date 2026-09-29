@@ -26,8 +26,13 @@ export class IfoodContractMockClient {
   requestCancellation(id, reason) { return this.transition(id, 'CANCELLATION_REQUESTED', reason ?? {}); }
   async listCatalogs(id) { this.call('GET', `/catalog/v2.0/merchants/${id}/catalogs`); return [{ id: 'catalog-test', name: 'Catálogo Demo' }]; }
   async listSellableItems(id, catalogId) { this.call('GET', `/catalog/v2.0/merchants/${id}/catalogs/${catalogId}/sellableItems`); return [{ id: 'item-1', name: 'Produto Demo', price: 2990, status: 'AVAILABLE' }]; }
+  async createCatalogItem(id, catalogId, item) { this.call('POST', `/catalog/v2.0/merchants/${id}/catalogs/${catalogId}/sellableItems`, item); return { id: 'item-created', ...item, status: item.status ?? 'AVAILABLE' }; }
+  async updateCatalogItem(id, catalogId, itemId, patch) { this.call('PATCH', `/catalog/v2.0/merchants/${id}/catalogs/${catalogId}/sellableItems/${itemId}`, patch); return { id: itemId, ...patch }; }
   async listReviews(id) { this.call('GET', `/review/v2.0/merchants/${id}/reviews`); return this.reviews; }
   async replyReview(id, reviewId, text) { this.call('POST', `/review/v2.0/merchants/${id}/reviews/${reviewId}/answers`, { text }); const review = this.reviews.find(item => item.id === reviewId); if (review) review.answered = true; return { id: reviewId, text }; }
+  async quoteDelivery(id, payload) { this.call('POST', `/shipping/v1.0/merchants/${id}/delivery/quotes`, payload); return { id: 'quote-test', status: 'QUOTED', fee: 899, etaMinutes: 35 }; }
+  async createDelivery(id, payload) { this.call('POST', `/shipping/v1.0/merchants/${id}/deliveries`, payload); return { id: 'delivery-test', status: 'CREATED', ...payload }; }
+  async getDelivery(id, deliveryId) { this.call('GET', `/shipping/v1.0/merchants/${id}/deliveries/${deliveryId}`); return { id: deliveryId, status: 'IN_TRANSIT' }; }
   async pollEvents() { this.call('GET', '/order/v1.0/events:polling'); return { events: this.events.splice(0) }; }
   async acknowledgeEvents(eventIds) { this.call('POST', '/order/v1.0/events/acknowledgment', { acknowledgedEventIds: eventIds }); return { acknowledgedEventIds: eventIds }; }
 }
