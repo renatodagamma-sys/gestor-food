@@ -43,6 +43,7 @@ O módulo financeiro em `src/domain/product-finance.js` rateia custos de pedido 
 - [Checklist de produção iFood](docs/ifood-production-checklist.md)
 - [Notas da documentação oficial iFood](docs/ifood-official-notes.md)
 - [Próximas ações operacionais](docs/next-actions.md)
+- [Runbook de testes independentes do iFood](docs/contract-test-runbook.md)
 - [Revisão de segurança](docs/security-review.md)
 - [Runbook de produção](docs/production-runbook.md)
 

@@ -22,6 +22,7 @@ export const openapi = {
     '/api/recovery/{storeId}': { get: { summary: 'Plano de recuperação', parameters: [{ name: 'storeId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'scenario', in: 'query', schema: { type: 'string', enum: DEMO_SCENARIOS, default: 'normal' } }], responses: { 200: { description: 'Plano calculado' }, 404: { description: 'Loja não encontrada' } } } },
     '/api/system/status': { get: { summary: 'Estado das flags e módulos', responses: { 200: { description: 'Status operacional' } } } },
     '/api/launch/readiness': { get: { summary: 'Checklist de prontidão para lançamento', responses: { 200: { description: 'Itens concluídos e pendentes' } } } },
+    '/api/launch/compliance': { get: { summary: 'Matriz de conformidade técnica por módulo', responses: { 200: { description: 'Requisitos implementados, pendentes e dependências externas' } } } },
     '/api/catalog/analysis': { get: { summary: 'Análise de catálogo', responses: { 200: { description: 'Análise de produtos' } } } },
     '/api/products': { get: { summary: 'Produtos', responses: { 200: { description: 'Produtos visíveis' } } } },
     '/api/reviews': { get: { summary: 'Avaliações', responses: { 200: { description: 'Avaliações visíveis' } } } },
