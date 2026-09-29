@@ -14,8 +14,14 @@ test('simulador cobre o contrato Merchant, Catalog e Review sem rede externa', a
   assert.equal((await client.listSellableItems('merchant-test', 'catalog-test')).length, 1);
   assert.equal((await client.listReviews('merchant-test')).length, 1);
   await client.replyReview('merchant-test', 'review-test', 'Obrigado!');
+  await client.createCatalogItem('merchant-test', 'catalog-test', { name: 'Novo item', price: 1990 });
+  await client.updateCatalogItem('merchant-test', 'catalog-test', 'item-1', { price: 2190 });
+  await client.quoteDelivery('merchant-test', { orderId: 'order-test' });
+  await client.createDelivery('merchant-test', { orderId: 'order-test' });
+  await client.getDelivery('merchant-test', 'delivery-test');
   assert.equal((await client.listReviews('merchant-test'))[0].answered, true);
   assert.ok(client.calls.every(call => !call.path.includes('merchant-api')));
+  assert.equal(client.calls.some(call => call.path.includes('/shipping/v1.0/')), true);
 });
 
 test('simulador cobre ciclo de pedido e polling com acknowledgment', async () => {
